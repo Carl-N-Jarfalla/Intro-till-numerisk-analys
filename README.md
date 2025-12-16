@@ -1,6 +1,115 @@
-# Numerisk analys ma3c
+# Intro till Numerisk analys
+
+## Bakgrund
+
+På fysiken har vi ofta använt oss av st och vt-diagram för att beskriva rörelser. I vt-diagram kan vi läsa av hastigheten som funktion av tiden direkt. Men vi kan också få fram acceleration och sträckan vi rört oss.
+
+![vt-diagram](image.png)
+
+### Acceleration
+
+Acceleration är förändring av hastighet. Med en formelm $a=\frac{\Delta v}{\Delta t}$, i ett vt diagram motsvarar detta lutningen av grafen. (Jämför $k=\frac{\Delta y}{\Delta x}$)
+
+### Sträcka
+
+Om vi vill bestämma hur lång sträcka som något rört sig från ett vt-diagram motsvarar det arean under grafen. Detta är inte lika lätt som acceleration att "se", men för enkla fall som diagrammet ovanför är det inte så svårt. Ofta kan vi dela upp arean i ett antal enklare former vars area vi kan beräkna. Här är tex A, B och C en triangel, en rektangel och en parallelltrapets och den totala arean kan beräknas genom
+
+$$\frac{2\cdot30}{2}+(5-2)\cdot 30 + \frac{30+50}{2}\cdot (8-5)=240\text{ m}$$
+
+### Numeriska beräkningar
+
+I verkliga tillämpningar får vi oftast inte fina vt-diagram där hastigheten beskrivs med en linjen. Istället så har vi något mätinstrument som mäter hastighet med ett visst tidsintervall. Om vi ritar ett vt-diagram skulle det kunna se ut så här
+![vt-punkter](image-1.png)
+
+För att räkna ut accelerationen här är det mer partiskt att tänka oss datan som en serie av koordinater.
+
+x[t] | y[v]
+------- | -------
+0 | 0
+1 | 15
+2 | 30
+3 | 30
+4 | 30
+5 | 30
+6 | 36.667
+7 | 43.333
+8 | 50
+
+Då ge accelerationen under den första sekunden av $a=\frac{y_2 - y_1}{x_2 - x_1}=\frac{15 - 0}{1 - 0}$.
+
+## Uppgift 0 Intro till Numpy
+
+I den här uppgiften ska vi öva på hur en dator skulle kunna räkna ut acceleration och sträcka från en lista med punkter. Denna del av matematiken där vi med en dator och faktiska nummer räknar ut saker brukar kallas numeriska metoder. Mer specifikt kallas det vi ska göra här numerisk analys.
+
+För detta så kommer vi använda ett python paket som heter Numpy (numerical python).
+
+- [ ] Börja med att installera numpy
+
+I filen uppgift 0 så hittar du följande kod
+
+```python
+import numpy as np
+
+x_värden = np.array([0,1,2,3,4,5,6,7,8])
+y_värden = np.array([0,15,30,30,30,30,36.6667,43.3333,50])
+
+```
+
+Först så importerar vi numpy. Av tradition så kallas paketet alltid för np. Därefter så skapar vi två "listor" över punkterna i diagrammet ovans x och y koordinater. Det är dock inte vanliga listor utan numpy arrays som har några skillnader.
+
+En viktig skillnad är att numpy hanterar matematiska operationer på arrays elementsvis.
+Om vi skriver `print(x_värden+1)` så kommer numpy att lägga till 1 till varje värde i "listan".
+
+I ren python hade motsvarande krävt en for-loop
+
+```python
+x_värden = [0,1,2,3,4,5,6,7,8]
+
+for i in range(len(x_värden)):
+    x_värden[i] = x_värden[i] + 1
+```
+
+### Acceleration
+
+Om vi ska beräkna acceleration under varje sekund så vill vi ta $a=\frac{\Delta v}{\Delta t}=\frac{y_2 - y_1}{x_2 - x_1}$ för varje par av punkter. Med en for-loop kan vi beräkna $\Delta y$ så här
+
+```python
+y_värden = [0,15,30,30,30,30,36.6667,43.3333,50]
+delta_y=[]
+for i in range(len(y_värden)-1):
+    delta= y_värden[i+1]-y_värden[i]
+    delta_y.append(delta)    
+```
+
+- [ ] Fundera igenom varför vi behöver -1 vid range(len(y_värden)-1) i loopen.
+
+Genom att kombinera numpys elementsvisa operationer med pythons slicing så kan många beräkningar likt denna uttryckas väldigt enkelt.
+Ofta till och med på en enda rad.
+
+```python
+delta_y = y_värden[1:] - y_värden[:-1]  
+```
+Här betyder `y_värden[1:]` alla y värden efter det första, och `y_värden[:-1]` alla värden innan det sista.
+
+- [ ] Använd numpy för att beräkna $\Delta y$, $\Delta x$ och sedan $a=\frac{\Delta v}{\Delta t}$
+
+### Sträcka
+
+När slutmålet är att datorn ska kunna göra dessa beräkningar fungerar vårt tidigare trick att dela in arean under grafen i olika enklare formen inte lägre.
+Innan vi använder python för att beräkna sträckan baserat på punkternas koordinater är det bra att fundera hur vi skulle göra det för hand utan att kunna se vilka former vi kan dela upp området i.
+
+Ett första försök skulle kunna vara att alltid dela in arean i rektanglar. En fördel med det är att arean av en rektangel är väldigt lätt att beräkna. En nackdel är att vårt svar kommer vara lite fel. Beroende på om vi väljer våra punkter som det övre högra eller vänstra hörnet så kommer den area vi beräknar att vara större eller minder än den verkliga arean. (I detta fall. För mer komplexa situationer kan vi inte alltid veta om svaret vi får är för stort eller litet.) Trots denna brist är denna metod ofta tillräckligt bra, så länge vi har ett tillräckligt kort intervall mellan varje mätning.
+
+Hur gör vi denna beräkning i kod? Om vi väljer att punkterna är övre högra hörnet i varje rektangel så ges en rektangel nr n area av 
+$$A_n=y_n \cdot (x_n -x_{n-1})$$
+Att räkna ut avståndet i x-led mellan en punkt och den föregående kan kännas onödigt här där det alltid är 1, men i andra sammanhang kanske det inte är så enkelt. Avståndet behöver inte ens vara samma mellan alla punkter.
+
+- [ ] Beräkna arean för varje rektangel med hjälp av numpy. (Även detta kan göras på en rad.)
+
+När vi väl har en array med alla rektanglars area så kan vi använda funktionen `sum()` för att beräkna den totala arean.
 
 ## Uppgift 1
+
 För uppgift 1 har du fått en .txt fil med data från en löprunda i kallhälls el-ljus spår.
 Filen innehåller distansen i meter från start och höjden över havet. Din uppgift är att räkna ut var
 längs spåret det lutar mest.
